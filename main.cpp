@@ -16,16 +16,19 @@ struct Node {
     }
 
     void insert(int val) {
-        // auto node = std::make_unique<Node>(val);
-        // node->next = next;
-        // node->prev = prev;
-        // if (prev)
-        //     prev->next = node;
-        // if (next)
-        //     next->prev = node;
+        auto node = std::make_unique<Node>(val);
+        if (next) {
+            next->prev = node.get();
+        }
+        node->next = std::move(next);
+        node->prev = this;
+        next = std::move(node);
     }
 
     void erase() {
+        if (next) {
+            next->prev = prev;
+        }
         if (prev) {
             prev->next = std::move(next);
         }
@@ -45,13 +48,15 @@ struct List {
         printf("List 被拷贝！\n");
         // head = other.head;  // 这是浅拷贝！
         // 请实现拷贝构造函数为 **深拷贝**
-        std::vector<int> nums;
-        for (auto curr = other.front(); curr; curr=curr->next.get()) {
-            nums.push_back(curr->value);
-        }
+        if (!other.front()) return;
+        Node *other_ptr = other.front();
+        head = std::make_unique<Node>(other_ptr->value);
+        auto this_ptr = head.get();
 
-        for (auto iter=nums.rbegin(); iter != nums.rend(); ++iter) {
-            push_front(*iter);
+        while (other_ptr->next) {
+            this_ptr->insert(other_ptr->next->value);
+            this_ptr = this_ptr->next.get();
+            other_ptr = other_ptr->next.get();
         }
 
     }
@@ -137,5 +142,6 @@ int main() {
     b = {};
     a = {};
 
+    std::cout << "hello world" << std::endl;
     return 0;
 }
